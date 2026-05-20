@@ -6,12 +6,4 @@
     </style>
 
     <style name="Theme.SudokuRank" parent="Base.Theme.SudokuRank" />
-
-    <style name="CustomDialog" parent="Theme.Material3.DayNight.Dialog">
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowMinWidthMajor">90%</item>
-        <item name="android:windowMinWidthMinor">90%</item>
-    </style>
 </resources>

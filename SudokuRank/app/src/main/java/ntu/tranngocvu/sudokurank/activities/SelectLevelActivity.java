@@ -5,18 +5,27 @@ import android.os.Bundle;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.models.Level;
 
 public class SelectLevelActivity extends AppCompatActivity {
+
     private CardView cardEasy, cardMedium, cardHard;
     private TextView tvProgressEasy, tvProgressMedium, tvProgressHard;
     private ImageButton btnBack;
+
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
 
@@ -31,44 +40,63 @@ public class SelectLevelActivity extends AppCompatActivity {
         cardEasy = findViewById(R.id.cardEasy);
         cardMedium = findViewById(R.id.cardMedium);
         cardHard = findViewById(R.id.cardHard);
+
         tvProgressEasy = findViewById(R.id.tvProgressEasy);
         tvProgressMedium = findViewById(R.id.tvProgressMedium);
         tvProgressHard = findViewById(R.id.tvProgressHard);
-        btnBack = findViewById(R.id.btnBack);
 
+        btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        cardEasy.setOnClickListener(v -> startLevel("Easy"));
-        cardMedium.setOnClickListener(v -> startLevel("Medium"));
-        cardHard.setOnClickListener(v -> startLevel("Hard"));
+        cardEasy.setOnClickListener(v -> startRandomLevel("Easy"));
+        cardMedium.setOnClickListener(v -> startRandomLevel("Medium"));
+        cardHard.setOnClickListener(v -> startRandomLevel("Hard"));
 
         loadProgress();
     }
 
     private void loadProgress() {
-        String uid = mAuth.getCurrentUser().getUid();
-        // Here we would fetch progress count for each difficulty
-        // For simplicity, we just keep placeholders as per requirement
+        if (mAuth.getCurrentUser() == null) return;
+
+        tvProgressEasy.setText("Tiến độ: 1/100");
+        tvProgressMedium.setText("Tiến độ: 0/100");
+        tvProgressHard.setText("Tiến độ: 0/100");
     }
 
-    private void startLevel(String difficulty) {
+    private void startRandomLevel(String difficulty) {
         db.collection("sudoku_levels")
                 .whereEqualTo("difficulty", difficulty)
-                .orderBy("level", Query.Direction.ASCENDING)
-                .limit(1)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    if (!queryDocumentSnapshots.isEmpty()) {
-                        Level level = queryDocumentSnapshots.getDocuments().get(0).toObject(Level.class);
-                        Intent intent = new Intent(SelectLevelActivity.this, GameActivity.class);
-                        intent.putExtra("PUZZLE", level.getPuzzle());
-                        intent.putExtra("SOLUTION", level.getSolution());
-                        intent.putExtra("LEVEL", level.getLevel());
-                        intent.putExtra("DIFFICULTY", level.getDifficulty());
-                        startActivity(intent);
-                    } else {
-                        Toast.makeText(this, "Chưa có màn chơi cho độ khó này", Toast.LENGTH_SHORT).show();
+
+                    List<Level> levels = new ArrayList<>();
+
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        Level level = document.toObject(Level.class);
+
+                        if (level.getPuzzle() != null
+                                && level.getSolution() != null
+                                && level.getPuzzle().length() == 81
+                                && level.getSolution().length() == 81) {
+                            levels.add(level);
+                        }
                     }
+
+                    if (levels.isEmpty()) {
+                        Toast.makeText(this, "Chưa có màn hợp lệ cho độ khó này", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    int randomIndex = new Random().nextInt(levels.size());
+                    Level selectedLevel = levels.get(randomIndex);
+
+                    Intent intent = new Intent(SelectLevelActivity.this, GameActivity.class);
+                    intent.putExtra("PUZZLE", selectedLevel.getPuzzle());
+                    intent.putExtra("SOLUTION", selectedLevel.getSolution());
+                    intent.putExtra("LEVEL", selectedLevel.getLevel());
+                    intent.putExtra("DIFFICULTY", selectedLevel.getDifficulty());
+
+                    startActivity(intent);
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }

@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
     <color name="sudoku_primary">#1976D2</color>
     <color name="sudoku_primary_dark">#1565C0</color>
     <color name="sudoku_primary_light">#BBDEFB</color>
-    <color name="sudoku_bg">#F5F7FA</color>
+
+    <color name="sudoku_bg">#F4F8FF</color>
+
     <color name="sudoku_accent">#FFC107</color>
+
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#757575</color>
+
     <color name="error_red">#D32F2F</color>
     <color name="success_green">#388E3C</color>
+
     <color name="card_bg">#FFFFFF</color>
     <color name="divider">#BDBDBD</color>
 
@@ -18,8 +25,15 @@
     <color name="difficulty_medium">#FF9800</color>
     <color name="difficulty_hard">#F44336</color>
 
+    <!-- Sudoku Grid -->
+    <color name="grid_border_thick">#212121</color>
+    <color name="grid_border_light">#CFD8DC</color>
+    <color name="grid_border_thin">#BDBDBD</color>
+
+    <!-- Cell States -->
     <color name="cell_prefilled">#E0E0E0</color>
     <color name="cell_selected">#BBDEFB</color>
     <color name="cell_error">#FFCDD2</color>
     <color name="cell_correct">#C8E6C9</color>
+
 </resources>
