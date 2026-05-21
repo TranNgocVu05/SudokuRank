@@ -237,15 +237,5 @@
             android:textColor="@color/white"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnSettings"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="12dp"
-            android:backgroundTint="@color/white"
-            android:text="Cài đặt"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold" />
-
     </LinearLayout>
 </ScrollView>

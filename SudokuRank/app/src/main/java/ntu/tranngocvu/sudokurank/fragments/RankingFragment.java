@@ -24,6 +24,7 @@ import java.util.Map;
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.adapters.ScoreAdapter;
 import ntu.tranngocvu.sudokurank.models.Score;
+import ntu.tranngocvu.sudokurank.models.User;
 
 public class RankingFragment extends Fragment {
 
@@ -89,7 +90,7 @@ public class RankingFragment extends Fragment {
         btnWorld = view.findViewById(R.id.btnWorld);
         btnFriends = view.findViewById(R.id.btnFriends);
 
-        adapter = new ScoreAdapter(getContext(), scoreList);
+        adapter = new ScoreAdapter(requireContext(), scoreList);
         lvRanking.setAdapter(adapter);
 
         btnWorld.setOnClickListener(v -> {
@@ -142,38 +143,49 @@ public class RankingFragment extends Fragment {
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Score score = doc.toObject(Score.class);
-
                         if (score != null) {
+                            if (score.username == null) score.username = "Người chơi";
+                            if (score.avatar == null) score.avatar = "avatar_1";
+                            score.rank = getRankName(score.score);
+                            score.rankImage = getRankImage(score.score);
                             scoreList.add(score);
                         }
                     }
 
-                    Collections.sort(scoreList, (a, b) -> {
-
-                        int compareScore = Long.compare(b.score, a.score);
-
-                        if (compareScore != 0) {
-                            return compareScore;
-                        }
-
-                        return Long.compare(a.time, b.time);
-                    });
-
-                    if (scoreList.size() > 50) {
-                        scoreList = new ArrayList<>(scoreList.subList(0, 50));
-                        adapter.clear();
-                        adapter.addAll(scoreList);
-                    }
-
-                    adapter.notifyDataSetChanged();
+                    sortAndLimit50();
                 });
     }
 
     private void loadFriendScores() {
-
         String uid = mAuth.getUid();
         if (uid == null) return;
 
+        scoreList.clear();
+
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(userDoc -> {
+                    User user = userDoc.toObject(User.class);
+
+                    if (user != null) {
+                        Score myScore = new Score();
+                        myScore.userId = uid;
+                        myScore.username = user.name == null ? "Tôi" : user.name;
+                        myScore.avatar = user.avatar == null ? "avatar_1" : user.avatar;
+                        myScore.score = user.bestScore;
+                        myScore.time = 0;
+                        myScore.mistakes = 0;
+                        myScore.difficulty = "All";
+                        myScore.mode = "friends";
+                        myScore.rank = getRankName(myScore.score);
+                        myScore.rankImage = getRankImage(myScore.score);
+                        scoreList.add(myScore);
+                    }
+
+                    loadFriendsAfterSelf(uid);
+                });
+    }
+
+    private void loadFriendsAfterSelf(String uid) {
         db.collection("friends")
                 .whereEqualTo("userId", uid)
                 .get()
@@ -184,20 +196,18 @@ public class RankingFragment extends Fragment {
                         return;
                     }
 
-                    scoreList.clear();
-
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-
                         Score score = new Score();
 
                         score.userId = doc.getString("friendId");
                         score.username = doc.getString("friendName");
                         score.avatar = doc.getString("avatar");
-                        score.rankImage = doc.getString("rankImage");
 
                         Long scoreLong = doc.getLong("score");
-
                         score.score = scoreLong == null ? 0L : scoreLong;
+
+                        score.rank = getRankName(score.score);
+                        score.rankImage = getRankImage(score.score);
 
                         score.time = 200L;
                         score.mistakes = 1L;
@@ -207,38 +217,64 @@ public class RankingFragment extends Fragment {
                         scoreList.add(score);
                     }
 
-                    Collections.sort(scoreList,
-                            (a, b) -> Long.compare(b.score, a.score));
-
+                    Collections.sort(scoreList, (a, b) -> Long.compare(b.score, a.score));
                     adapter.notifyDataSetChanged();
                 });
     }
 
+    private void sortAndLimit50() {
+        Collections.sort(scoreList, (a, b) -> {
+            int compareScore = Long.compare(b.score, a.score);
+            if (compareScore != 0) return compareScore;
+            return Long.compare(a.time, b.time);
+        });
+
+        if (scoreList.size() > 50) {
+            scoreList = new ArrayList<>(scoreList.subList(0, 50));
+            adapter.clear();
+            adapter.addAll(scoreList);
+        }
+
+        lvRanking.setAlpha(0f);
+
+        adapter.notifyDataSetChanged();
+
+        lvRanking.animate()
+                .alpha(1f)
+                .setDuration(180)
+                .start();
+    }
+
+    private String getRankName(long score) {
+        if (score >= 100000) return "Kim cương";
+        if (score >= 50000) return "Bạch kim";
+        if (score >= 10000) return "Vàng";
+        if (score >= 5000) return "Bạc";
+        return "Đồng";
+    }
+
+    private String getRankImage(long score) {
+        if (score >= 100000) return "rank_diamond";
+        if (score >= 50000) return "rank_platinum";
+        if (score >= 10000) return "rank_gold";
+        if (score >= 5000) return "rank_silver";
+        return "rank_bronze";
+    }
+
     private void seedWorldScores() {
-
         for (int i = 0; i < 50; i++) {
-
             Map<String, Object> data = new HashMap<>();
 
             data.put("userId", "fake_user_" + (i + 1));
             data.put("username", worldNames[i]);
             data.put("avatar", "avatar_" + ((i % 10) + 1));
-
-            if (worldScores[i] >= 7000) {
-                data.put("rankImage", "rank_gold");
-            } else if (worldScores[i] >= 4000) {
-                data.put("rankImage", "rank_silver");
-            } else {
-                data.put("rankImage", "rank_bronze");
-            }
-
             data.put("score", worldScores[i]);
             data.put("time", (long) (120 + i * 8));
             data.put("mistakes", (long) (i % 3));
-            data.put("difficulty", i % 3 == 0 ? "Hard" :
-                    i % 3 == 1 ? "Medium" : "Easy");
-
+            data.put("difficulty", i % 3 == 0 ? "Hard" : i % 3 == 1 ? "Medium" : "Easy");
             data.put("mode", "world");
+            data.put("rank", getRankName(worldScores[i]));
+            data.put("rankImage", getRankImage(worldScores[i]));
 
             db.collection("scores").add(data);
         }
@@ -247,28 +283,19 @@ public class RankingFragment extends Fragment {
     }
 
     private void seedFriends() {
-
         String uid = mAuth.getUid();
         if (uid == null) return;
 
         for (int i = 0; i < 10; i++) {
-
             Map<String, Object> data = new HashMap<>();
 
             data.put("userId", uid);
             data.put("friendId", "fake_friend_" + (i + 1));
             data.put("friendName", friendNames[i]);
             data.put("avatar", "avatar_" + ((i % 10) + 1));
-
-            if (friendScores[i] >= 4500) {
-                data.put("rankImage", "rank_gold");
-            } else if (friendScores[i] >= 3300) {
-                data.put("rankImage", "rank_silver");
-            } else {
-                data.put("rankImage", "rank_bronze");
-            }
-
             data.put("score", friendScores[i]);
+            data.put("rank", getRankName(friendScores[i]));
+            data.put("rankImage", getRankImage(friendScores[i]));
 
             db.collection("friends").add(data);
         }

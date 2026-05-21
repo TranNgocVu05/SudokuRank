@@ -56,7 +56,7 @@ public class HomeFragment extends Fragment {
 
         btnContinue = view.findViewById(R.id.btnContinue);
         btnNewGame = view.findViewById(R.id.btnNewGame);
-        btnSettings = view.findViewById(R.id.btnSettings);
+
 
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
