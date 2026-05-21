@@ -17,6 +17,8 @@ import ntu.tranngocvu.sudokurank.MainActivity;
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.adapters.AvatarAdapter;
 import ntu.tranngocvu.sudokurank.models.User;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText edtUsername, edtEmail, edtPassword, edtConfirmPassword;
@@ -61,6 +63,7 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void handleRegister() {
+
         String username = edtUsername.getText().toString().trim();
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
@@ -78,17 +81,43 @@ public class RegisterActivity extends AppCompatActivity {
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
+
                     if (task.isSuccessful()) {
-                        String userId = mAuth.getCurrentUser().getUid();
-                        User user = new User(username, email, selectedAvatar);
-                        db.collection("users").document(userId).set(user)
-                                .addOnSuccessListener(aVoid -> {
+
+                        String uid = mAuth.getCurrentUser().getUid();
+
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("name", username);
+                        user.put("email", email);
+                        user.put("avatar", selectedAvatar);
+                        user.put("rank", "Bronze I");
+                        user.put("rankImage", "rank_bronze");
+                        user.put("theme", "default");
+                        user.put("bestScore", 0L);
+                        user.put("totalGames", 0L);
+                        user.put("winStreak", 0L);
+                        user.put("loseStreak", 0L);
+
+                        db.collection("users")
+                                .document(uid)
+                                .set(user)
+                                .addOnSuccessListener(unused -> {
+
+                                    Toast.makeText(this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
+
                                     startActivity(new Intent(RegisterActivity.this, MainActivity.class));
                                     finishAffinity();
                                 })
-                                .addOnFailureListener(e -> Toast.makeText(RegisterActivity.this, "Lỗi lưu dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                                .addOnFailureListener(e ->
+                                        Toast.makeText(this,
+                                                "Lỗi Firestore: " + e.getMessage(),
+                                                Toast.LENGTH_LONG).show());
+
                     } else {
-                        Toast.makeText(RegisterActivity.this, "Đăng ký thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+
+                        Toast.makeText(this,
+                                "Đăng ký thất bại: " + task.getException().getMessage(),
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
