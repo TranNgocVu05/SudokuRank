@@ -19,6 +19,7 @@ import java.util.Random;
 
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.models.Level;
+import ntu.tranngocvu.sudokurank.utils.SudokuSeeder;
 
 public class SelectLevelActivity extends AppCompatActivity {
 
@@ -28,6 +29,9 @@ public class SelectLevelActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+
+    // Sau khi tạo 300 màn xong thì đổi thành false
+    private static final boolean SHOULD_SEED_LEVELS = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +57,40 @@ public class SelectLevelActivity extends AppCompatActivity {
         cardHard.setOnClickListener(v -> startRandomLevel("Hard"));
 
         loadProgress();
+
+        if (SHOULD_SEED_LEVELS) {
+            seedSudokuLevelsOnce();
+        }
     }
 
     private void loadProgress() {
         if (mAuth.getCurrentUser() == null) return;
 
-        tvProgressEasy.setText("Tiến độ: 1/100");
+        tvProgressEasy.setText("Tiến độ: 0/100");
         tvProgressMedium.setText("Tiến độ: 0/100");
         tvProgressHard.setText("Tiến độ: 0/100");
+    }
+
+    private void seedSudokuLevelsOnce() {
+        SudokuSeeder.seedAllLevels(new SudokuSeeder.SeedCallback() {
+            @Override
+            public void onSuccess() {
+                Toast.makeText(
+                        SelectLevelActivity.this,
+                        "Đã tạo 300 màn Sudoku",
+                        Toast.LENGTH_SHORT
+                ).show();
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Toast.makeText(
+                        SelectLevelActivity.this,
+                        "Lỗi seed: " + e.getMessage(),
+                        Toast.LENGTH_LONG
+                ).show();
+            }
+        });
     }
 
     private void startRandomLevel(String difficulty) {
@@ -74,7 +104,8 @@ public class SelectLevelActivity extends AppCompatActivity {
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         Level level = document.toObject(Level.class);
 
-                        if (level.getPuzzle() != null
+                        if (level != null
+                                && level.getPuzzle() != null
                                 && level.getSolution() != null
                                 && level.getPuzzle().length() == 81
                                 && level.getSolution().length() == 81) {
@@ -83,7 +114,11 @@ public class SelectLevelActivity extends AppCompatActivity {
                     }
 
                     if (levels.isEmpty()) {
-                        Toast.makeText(this, "Chưa có màn hợp lệ cho độ khó này", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(
+                                this,
+                                "Chưa có màn hợp lệ cho độ khó này",
+                                Toast.LENGTH_SHORT
+                        ).show();
                         return;
                     }
 
@@ -93,11 +128,15 @@ public class SelectLevelActivity extends AppCompatActivity {
                     Intent intent = new Intent(SelectLevelActivity.this, GameActivity.class);
                     intent.putExtra("PUZZLE", selectedLevel.getPuzzle());
                     intent.putExtra("SOLUTION", selectedLevel.getSolution());
-                    intent.putExtra("LEVEL", selectedLevel.getLevel());
+                    intent.putExtra("LEVEL", (int) selectedLevel.getLevel());
                     intent.putExtra("DIFFICULTY", selectedLevel.getDifficulty());
 
                     startActivity(intent);
                 })
-                .addOnFailureListener(e -> Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e -> Toast.makeText(
+                        this,
+                        "Lỗi: " + e.getMessage(),
+                        Toast.LENGTH_SHORT
+                ).show());
     }
 }
