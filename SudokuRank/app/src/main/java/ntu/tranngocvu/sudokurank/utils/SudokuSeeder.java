@@ -25,31 +25,27 @@ public class SudokuSeeder {
     };
 
     public static void seedAllLevels(SeedCallback callback) {
-
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         pendingWrites = 300;
         hasError = false;
 
-        seedDifficulty(db, "Easy", 35, 1, callback);
-        seedDifficulty(db, "Medium", 45, 101, callback);
-        seedDifficulty(db, "Hard", 55, 201, callback);
+        seedDifficulty(db, "Easy", 53, callback);   // hiện 28 ô
+        seedDifficulty(db, "Medium", 61, callback); // hiện 20 ô
+        seedDifficulty(db, "Hard", 66, callback);   // hiện 15 ô
     }
 
     private static void seedDifficulty(FirebaseFirestore db,
                                        String difficulty,
                                        int emptyCount,
-                                       int startLevel,
                                        SeedCallback callback) {
 
         for (int i = 1; i <= 100; i++) {
-
-            long levelNumber = i;
             String solution = randomizeSolution(SOLUTIONS[i % SOLUTIONS.length], i);
             String puzzle = makePuzzle(solution, emptyCount, i);
 
             Map<String, Object> data = new HashMap<>();
-            data.put("level", levelNumber);
+            data.put("level", (long) i);
             data.put("difficulty", difficulty);
             data.put("puzzle", puzzle);
             data.put("solution", solution);
@@ -79,7 +75,6 @@ public class SudokuSeeder {
     }
 
     private static String randomizeSolution(String base, int seed) {
-
         Random random = new Random(seed);
 
         char[] map = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
@@ -103,7 +98,6 @@ public class SudokuSeeder {
     }
 
     private static String makePuzzle(String solution, int emptyCount, int seed) {
-
         char[] puzzle = solution.toCharArray();
 
         Random random = new Random(seed * 100L);

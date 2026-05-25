@@ -31,7 +31,8 @@ public class SelectLevelActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
 
     // Sau khi tạo 300 màn xong thì đổi thành false
-    private static final boolean SHOULD_SEED_LEVELS = true;
+    //private static final boolean SHOULD_SEED_LEVELS = true;
+    private static final boolean SHOULD_SEED_LEVELS = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

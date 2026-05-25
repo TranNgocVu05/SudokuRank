@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/sudoku_bg">
+    android:background="#F4F8FF"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,20 +12,46 @@
         android:orientation="vertical"
         android:padding="20dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SUDOKURANK"
-            android:textColor="@color/sudoku_primary"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="@drawable/home_header_bg"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SUDOKU"
+                android:textColor="@color/white"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="RANK"
+                android:textColor="@color/sudoku_accent"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Thử thách trí tuệ mỗi ngày"
+                android:textColor="#E3F2FD"
+                android:textSize="14sp" />
+        </LinearLayout>
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            android:layout_marginTop="-28dp"
+            android:layout_marginHorizontal="12dp"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="6dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -35,14 +62,16 @@
 
                 <ImageView
                     android:id="@+id/imgHomeAvatar"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
+                    android:layout_width="70dp"
+                    android:layout_height="70dp"
+                    android:padding="3dp"
+                    android:scaleType="centerCrop"
                     android:src="@drawable/avatar_1" />
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
+                    android:layout_marginStart="14dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -57,9 +86,12 @@
 
                     <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="6dp"
+                        android:background="@drawable/tab_bg"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="10dp">
 
                         <ImageView
                             android:id="@+id/imgRank"
@@ -71,170 +103,208 @@
                             android:id="@+id/tvRank"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="4dp"
+                            android:layout_marginStart="6dp"
                             android:text="Bronze I"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/sudoku_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
                     </LinearLayout>
                 </LinearLayout>
+
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <LinearLayout
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="Thành tích của bạn"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
+            android:layout_marginTop="10dp"
+            android:columnCount="2">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                app:cardCornerRadius="16dp">
+                android:layout_height="86dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="3dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:orientation="vertical">
 
                     <TextView
+                        android:text="⭐"
+                        android:textSize="22sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
                         android:text="Điểm cao"
-                        android:textColor="@color/text_secondary" />
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvBestScore"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="@color/sudoku_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textSize="19sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                app:cardCornerRadius="16dp">
+                android:layout_height="86dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="3dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:orientation="vertical">
 
                     <TextView
+                        android:text="🎮"
+                        android:textSize="22sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
                         android:text="Tổng trận"
-                        android:textColor="@color/text_secondary" />
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvTotalGames"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
                         android:text="0"
                         android:textColor="@color/sudoku_primary"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textSize="19sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                app:cardCornerRadius="16dp">
+                android:layout_height="86dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="3dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:orientation="vertical">
 
                     <TextView
+                        android:text="🔥"
+                        android:textSize="22sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
                         android:text="Chuỗi thắng"
-                        android:textColor="@color/text_secondary" />
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvWinStreak"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🔥 0"
+                        android:text="0"
                         android:textColor="@color/success_green"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textSize="19sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                app:cardCornerRadius="16dp">
+                android:layout_height="86dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="6dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="3dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:orientation="vertical">
 
                     <TextView
+                        android:text="❄️"
+                        android:textSize="22sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <TextView
                         android:text="Chuỗi thua"
-                        android:textColor="@color/text_secondary" />
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                     <TextView
                         android:id="@+id/tvLoseStreak"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="❄️ 0"
+                        android:text="0"
                         android:textColor="@color/error_red"
-                        android:textSize="20sp"
-                        android:textStyle="bold" />
+                        android:textSize="19sp"
+                        android:textStyle="bold"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-        </LinearLayout>
+
+        </GridLayout>
 
         <Button
             android:id="@+id/btnContinue"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_marginTop="24dp"
+            android:layout_height="58dp"
+            android:layout_marginTop="20dp"
             android:backgroundTint="@color/sudoku_accent"
-            android:text="Tiếp tục chơi"
+            android:text="▶  Tiếp tục chơi"
+            android:textAllCaps="false"
             android:textColor="@color/white"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnNewGame"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="58dp"
             android:layout_marginTop="12dp"
             android:backgroundTint="@color/sudoku_primary"
-            android:text="Chọn màn chơi"
+            android:text="🎯  Chọn màn chơi"
+            android:textAllCaps="false"
             android:textColor="@color/white"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
     </LinearLayout>

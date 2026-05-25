@@ -1,13 +1,9 @@
 package ntu.tranngocvu.sudokurank.activities;
 
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,11 +21,11 @@ import java.util.Map;
 
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.models.User;
+import ntu.tranngocvu.sudokurank.views.SudokuBoardView;
 
 public class GameActivity extends AppCompatActivity {
 
-    private GridLayout gridSudoku;
-    private TextView[][] cells = new TextView[9][9];
+    private SudokuBoardView boardSudoku;
 
     private String puzzle, solution, currentBoardStr, difficulty;
     private int levelId;
@@ -43,9 +39,9 @@ public class GameActivity extends AppCompatActivity {
     private boolean isGameEnded = false;
 
     private TextView tvScore, tvMistakes, tvTime, tvTitle, tvNoteStatus;
-    private ImageView[] hearts = new ImageView[3];
+    private final ImageView[] hearts = new ImageView[3];
 
-    private Handler timerHandler = new Handler();
+    private final Handler timerHandler = new Handler();
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -76,7 +72,8 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        gridSudoku = findViewById(R.id.gridSudoku);
+        boardSudoku = findViewById(R.id.boardSudoku);
+
         tvScore = findViewById(R.id.tvScore);
         tvMistakes = findViewById(R.id.tvMistakes);
         tvTime = findViewById(R.id.tvTime);
@@ -105,9 +102,9 @@ public class GameActivity extends AppCompatActivity {
 
         if (getIntent().getBooleanExtra("CONTINUE", false)) {
             currentBoardStr = getIntent().getStringExtra("CURRENT_BOARD");
-            score = (int) getIntent().getLongExtra("SCORE", 0);
-            mistakes = (int) getIntent().getLongExtra("MISTAKES", 0);
-            seconds = (int) getIntent().getLongExtra("TIME", 0);
+            score = (int) getIntent().getLongExtra("SCORE", 0L);
+            mistakes = (int) getIntent().getLongExtra("MISTAKES", 0L);
+            seconds = (int) getIntent().getLongExtra("TIME", 0L);
         } else {
             currentBoardStr = puzzle;
         }
@@ -120,64 +117,16 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void setupGrid() {
-        int screenWidth = getResources().getDisplayMetrics().widthPixels;
-        int cellSize = (screenWidth - 60) / 9;
+        boardSudoku.setBoard(puzzle, currentBoardStr);
 
-        gridSudoku.removeAllViews();
+        boardSudoku.setOnCellClickListener((row, col) -> {
+            if (isPaused || isGameEnded) return;
 
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                TextView tv = new TextView(this);
-                cells[r][c] = tv;
+            selectedRow = row;
+            selectedCol = col;
 
-                tv.setGravity(Gravity.CENTER);
-                tv.setTextSize(18);
-
-                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-                params.width = cellSize;
-                params.height = cellSize;
-
-                int right = (c % 3 == 2 && c != 8) ? 4 : 1;
-                int bottom = (r % 3 == 2 && r != 8) ? 4 : 1;
-                params.setMargins(1, 1, right, bottom);
-                tv.setLayoutParams(params);
-
-                char pVal = puzzle.charAt(r * 9 + c);
-                char cVal = currentBoardStr.charAt(r * 9 + c);
-
-                if (pVal != '0') {
-                    tv.setText(String.valueOf(pVal));
-                    tv.setBackgroundColor(Color.parseColor("#EEEEEE"));
-                    tv.setTextColor(Color.BLACK);
-                    tv.setTypeface(null, Typeface.BOLD);
-                } else {
-                    if (cVal != '0') {
-                        tv.setText(String.valueOf(cVal));
-                    }
-
-                    tv.setBackgroundColor(Color.WHITE);
-                    tv.setTextColor(getResources().getColor(R.color.sudoku_primary));
-
-                    final int finalR = r;
-                    final int finalC = c;
-                    tv.setOnClickListener(v -> selectCell(finalR, finalC));
-                }
-
-                gridSudoku.addView(tv);
-            }
-        }
-    }
-
-    private void selectCell(int r, int c) {
-        if (isPaused || isGameEnded) return;
-
-        if (selectedRow != -1 && puzzle.charAt(selectedRow * 9 + selectedCol) == '0') {
-            cells[selectedRow][selectedCol].setBackgroundColor(Color.WHITE);
-        }
-
-        selectedRow = r;
-        selectedCol = c;
-        cells[r][c].setBackgroundColor(getResources().getColor(R.color.sudoku_primary_light));
+            boardSudoku.selectCell(row, col);
+        });
     }
 
     private void setupNumberPad() {
@@ -190,28 +139,29 @@ public class GameActivity extends AppCompatActivity {
         for (int i = 0; i < 9; i++) {
             final int num = i + 1;
             View btn = findViewById(ids[i]);
-            if (btn != null) {
-                btn.setOnClickListener(v -> handleInput(num));
-            }
+            if (btn != null) btn.setOnClickListener(v -> handleInput(num));
         }
     }
 
     private void handleInput(int num) {
         if (selectedRow == -1 || selectedCol == -1 || isPaused || isGameEnded) return;
 
+        if (boardSudoku.isFixedCell(selectedRow, selectedCol)) {
+            Toast.makeText(this, "Ô này là số có sẵn", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (isNoteMode) {
-            Toast.makeText(this, "Ghi chú: " + num, Toast.LENGTH_SHORT).show();
+            boardSudoku.addNote(selectedRow, selectedCol, num);
             return;
         }
 
         char correct = solution.charAt(selectedRow * 9 + selectedCol);
 
         if (String.valueOf(num).equals(String.valueOf(correct))) {
-            cells[selectedRow][selectedCol].setText(String.valueOf(num));
-            cells[selectedRow][selectedCol].setTextColor(getResources().getColor(R.color.sudoku_primary));
-            cells[selectedRow][selectedCol].setBackgroundColor(Color.parseColor("#E3F2FD"));
+            boardSudoku.setNumber(selectedRow, selectedCol, (char) ('0' + num));
 
-            score += 10;
+            score += getPointByDifficulty();
             tvScore.setText(String.valueOf(score));
 
             saveProgress();
@@ -220,20 +170,22 @@ public class GameActivity extends AppCompatActivity {
             mistakes++;
             updateMistakesUI();
 
-            cells[selectedRow][selectedCol].setBackgroundColor(getResources().getColor(R.color.error_red));
+            boardSudoku.markWrongCell(selectedRow, selectedCol);
 
             new Handler().postDelayed(() -> {
-                if (!isGameEnded && selectedRow != -1 && selectedCol != -1) {
-                    cells[selectedRow][selectedCol].setBackgroundColor(getResources().getColor(R.color.sudoku_primary_light));
-                }
-            }, 500);
+                boardSudoku.clearWrongCell();
+            }, 400);
 
             saveProgress();
 
-            if (mistakes >= 3) {
-                handleLose();
-            }
+            if (mistakes >= 3) handleLose();
         }
+    }
+
+    private int getPointByDifficulty() {
+        if (difficulty.equalsIgnoreCase("Medium")) return 25;
+        if (difficulty.equalsIgnoreCase("Hard")) return 50;
+        return 10;
     }
 
     private void updateMistakesUI() {
@@ -254,32 +206,36 @@ public class GameActivity extends AppCompatActivity {
             hint.setOnClickListener(v -> {
                 if (isPaused || isGameEnded) return;
 
+                if (selectedRow == -1 || selectedCol == -1) {
+                    Toast.makeText(this, "Hãy chọn ô cần gợi ý", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (boardSudoku.isFixedCell(selectedRow, selectedCol)) {
+                    Toast.makeText(this, "Ô này là số có sẵn", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (hintsUsed >= 3) {
                     Toast.makeText(this, "Bạn đã hết lượt gợi ý", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                for (int r = 0; r < 9; r++) {
-                    for (int c = 0; c < 9; c++) {
-                        if (puzzle.charAt(r * 9 + c) == '0'
-                                && cells[r][c].getText().toString().isEmpty()) {
+                char correct = solution.charAt(selectedRow * 9 + selectedCol);
 
-                            cells[r][c].setText(String.valueOf(solution.charAt(r * 9 + c)));
-                            cells[r][c].setTextColor(Color.parseColor("#4CAF50"));
+                boardSudoku.setNumber(selectedRow, selectedCol, correct);
 
-                            hintsUsed++;
-                            saveProgress();
-                            checkWin();
-                            return;
-                        }
-                    }
-                }
+                hintsUsed++;
+                saveProgress();
+                checkWin();
             });
         }
 
         View undo = findViewById(R.id.layoutUndo);
         if (undo != null) {
-            undo.setOnClickListener(v -> Toast.makeText(this, "Hoàn tác đang phát triển", Toast.LENGTH_SHORT).show());
+            undo.setOnClickListener(v ->
+                    Toast.makeText(this, "Hoàn tác đang phát triển", Toast.LENGTH_SHORT).show()
+            );
         }
 
         View note = findViewById(R.id.layoutNote);
@@ -293,9 +249,13 @@ public class GameActivity extends AppCompatActivity {
         View erase = findViewById(R.id.layoutErase);
         if (erase != null) {
             erase.setOnClickListener(v -> {
-                if (selectedRow != -1 && selectedCol != -1
-                        && puzzle.charAt(selectedRow * 9 + selectedCol) == '0') {
-                    cells[selectedRow][selectedCol].setText("");
+                if (selectedRow != -1 && selectedCol != -1) {
+                    if (boardSudoku.isFixedCell(selectedRow, selectedCol)) {
+                        Toast.makeText(this, "Không thể xóa số có sẵn", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    boardSudoku.clearCell(selectedRow, selectedCol);
                     saveProgress();
                 }
             });
@@ -313,24 +273,13 @@ public class GameActivity extends AppCompatActivity {
                     tvTime.setText(String.format(Locale.getDefault(), "%02d:%02d", m, s));
                 }
 
-                if (!isGameEnded) {
-                    timerHandler.postDelayed(this, 1000);
-                }
+                if (!isGameEnded) timerHandler.postDelayed(this, 1000);
             }
         }, 1000);
     }
 
     private void saveProgress() {
-        StringBuilder sb = new StringBuilder();
-
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                String val = cells[r][c].getText().toString();
-                sb.append(val.isEmpty() ? "0" : val);
-            }
-        }
-
-        currentBoardStr = sb.toString();
+        currentBoardStr = boardSudoku.getCurrentBoardString();
 
         String uid = mAuth.getUid();
         if (uid == null) return;
@@ -351,16 +300,11 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void checkWin() {
-        for (int r = 0; r < 9; r++) {
-            for (int c = 0; c < 9; c++) {
-                String value = cells[r][c].getText().toString();
+        String board = boardSudoku.getCurrentBoardString();
 
-                if (value.isEmpty()) return;
-
-                if (!value.equals(String.valueOf(solution.charAt(r * 9 + c)))) {
-                    return;
-                }
-            }
+        for (int i = 0; i < 81; i++) {
+            if (board.charAt(i) == '0') return;
+            if (board.charAt(i) != solution.charAt(i)) return;
         }
 
         handleWin();
