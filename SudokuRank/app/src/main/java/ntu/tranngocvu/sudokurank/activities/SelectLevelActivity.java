@@ -11,14 +11,8 @@ import androidx.cardview.widget.CardView;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 import ntu.tranngocvu.sudokurank.R;
-import ntu.tranngocvu.sudokurank.models.Level;
 import ntu.tranngocvu.sudokurank.utils.SudokuSeeder;
 
 public class SelectLevelActivity extends AppCompatActivity {
@@ -29,6 +23,10 @@ public class SelectLevelActivity extends AppCompatActivity {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
+
+    private long easyProgress = 0;
+    private long mediumProgress = 0;
+    private long hardProgress = 0;
 
     // Sau khi tạo 300 màn xong thì đổi thành false
     //private static final boolean SHOULD_SEED_LEVELS = true;
@@ -53,9 +51,9 @@ public class SelectLevelActivity extends AppCompatActivity {
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(v -> finish());
 
-        cardEasy.setOnClickListener(v -> startRandomLevel("Easy"));
-        cardMedium.setOnClickListener(v -> startRandomLevel("Medium"));
-        cardHard.setOnClickListener(v -> startRandomLevel("Hard"));
+        cardEasy.setOnClickListener(v -> startLevel("Easy", easyProgress));
+        cardMedium.setOnClickListener(v -> startLevel("Medium", mediumProgress));
+        cardHard.setOnClickListener(v -> startLevel("Hard", hardProgress));
 
         loadProgress();
 
@@ -67,9 +65,22 @@ public class SelectLevelActivity extends AppCompatActivity {
     private void loadProgress() {
         if (mAuth.getCurrentUser() == null) return;
 
-        tvProgressEasy.setText("Tiến độ: 0/100");
-        tvProgressMedium.setText("Tiến độ: 0/100");
-        tvProgressHard.setText("Tiến độ: 0/100");
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(doc -> {
+                    Long easy = doc.getLong("easyProgress");
+                    Long medium = doc.getLong("mediumProgress");
+                    Long hard = doc.getLong("hardProgress");
+
+                    easyProgress = easy == null ? 0 : easy;
+                    mediumProgress = medium == null ? 0 : medium;
+                    hardProgress = hard == null ? 0 : hard;
+
+                    tvProgressEasy.setText("Tiến độ: " + easyProgress + "/100");
+                    tvProgressMedium.setText("Tiến độ: " + mediumProgress + "/100");
+                    tvProgressHard.setText("Tiến độ: " + hardProgress + "/100");
+                });
     }
 
     private void seedSudokuLevelsOnce() {
@@ -94,50 +105,44 @@ public class SelectLevelActivity extends AppCompatActivity {
         });
     }
 
-    private void startRandomLevel(String difficulty) {
+    private void startLevel(String difficulty, long progress) {
+        long nextLevel = progress + 1;
+
+        if (nextLevel > 100) {
+            Toast.makeText(this, "Bạn đã hoàn thành hết chế độ này", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         db.collection("sudoku_levels")
                 .whereEqualTo("difficulty", difficulty)
+                .whereEqualTo("level", nextLevel)
+                .limit(1)
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-
-                    List<Level> levels = new ArrayList<>();
-
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        Level level = document.toObject(Level.class);
-
-                        if (level != null
-                                && level.getPuzzle() != null
-                                && level.getSolution() != null
-                                && level.getPuzzle().length() == 81
-                                && level.getSolution().length() == 81) {
-                            levels.add(level);
-                        }
-                    }
-
-                    if (levels.isEmpty()) {
-                        Toast.makeText(
-                                this,
-                                "Chưa có màn hợp lệ cho độ khó này",
-                                Toast.LENGTH_SHORT
-                        ).show();
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        Toast.makeText(this, "Chưa có màn chơi này", Toast.LENGTH_SHORT).show();
                         return;
                     }
 
-                    int randomIndex = new Random().nextInt(levels.size());
-                    Level selectedLevel = levels.get(randomIndex);
+                    String puzzle = query.getDocuments().get(0).getString("puzzle");
+                    String solution = query.getDocuments().get(0).getString("solution");
 
                     Intent intent = new Intent(SelectLevelActivity.this, GameActivity.class);
-                    intent.putExtra("PUZZLE", selectedLevel.getPuzzle());
-                    intent.putExtra("SOLUTION", selectedLevel.getSolution());
-                    intent.putExtra("LEVEL", (int) selectedLevel.getLevel());
-                    intent.putExtra("DIFFICULTY", selectedLevel.getDifficulty());
+                    intent.putExtra("PUZZLE", puzzle);
+                    intent.putExtra("SOLUTION", solution);
+                    intent.putExtra("LEVEL", (int) nextLevel);
+                    intent.putExtra("DIFFICULTY", difficulty);
 
                     startActivity(intent);
                 })
-                .addOnFailureListener(e -> Toast.makeText(
-                        this,
-                        "Lỗi: " + e.getMessage(),
-                        Toast.LENGTH_SHORT
-                ).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadProgress();
     }
 }

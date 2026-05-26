@@ -1,5 +1,6 @@
 package ntu.tranngocvu.sudokurank.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -18,6 +19,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Stack;
 
 import ntu.tranngocvu.sudokurank.R;
 import ntu.tranngocvu.sudokurank.models.User;
@@ -42,6 +44,8 @@ public class GameActivity extends AppCompatActivity {
     private final ImageView[] hearts = new ImageView[3];
 
     private final Handler timerHandler = new Handler();
+    private final Stack<String> undoStack = new Stack<>();
+
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
 
@@ -124,7 +128,6 @@ public class GameActivity extends AppCompatActivity {
 
             selectedRow = row;
             selectedCol = col;
-
             boardSudoku.selectCell(row, col);
         });
     }
@@ -151,6 +154,8 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
 
+        undoStack.push(boardSudoku.getCurrentBoardString());
+
         if (isNoteMode) {
             boardSudoku.addNote(selectedRow, selectedCol, num);
             return;
@@ -172,9 +177,7 @@ public class GameActivity extends AppCompatActivity {
 
             boardSudoku.markWrongCell(selectedRow, selectedCol);
 
-            new Handler().postDelayed(() -> {
-                boardSudoku.clearWrongCell();
-            }, 400);
+            new Handler().postDelayed(() -> boardSudoku.clearWrongCell(), 400);
 
             saveProgress();
 
@@ -221,8 +224,9 @@ public class GameActivity extends AppCompatActivity {
                     return;
                 }
 
-                char correct = solution.charAt(selectedRow * 9 + selectedCol);
+                undoStack.push(boardSudoku.getCurrentBoardString());
 
+                char correct = solution.charAt(selectedRow * 9 + selectedCol);
                 boardSudoku.setNumber(selectedRow, selectedCol, correct);
 
                 hintsUsed++;
@@ -233,9 +237,20 @@ public class GameActivity extends AppCompatActivity {
 
         View undo = findViewById(R.id.layoutUndo);
         if (undo != null) {
-            undo.setOnClickListener(v ->
-                    Toast.makeText(this, "Hoàn tác đang phát triển", Toast.LENGTH_SHORT).show()
-            );
+            undo.setOnClickListener(v -> {
+                if (isPaused || isGameEnded) return;
+
+                if (undoStack.isEmpty()) {
+                    Toast.makeText(this, "Không có thao tác để hoàn tác", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String previousBoard = undoStack.pop();
+                currentBoardStr = previousBoard;
+
+                boardSudoku.setBoard(puzzle, previousBoard);
+                saveProgress();
+            });
         }
 
         View note = findViewById(R.id.layoutNote);
@@ -254,6 +269,8 @@ public class GameActivity extends AppCompatActivity {
                         Toast.makeText(this, "Không thể xóa số có sẵn", Toast.LENGTH_SHORT).show();
                         return;
                     }
+
+                    undoStack.push(boardSudoku.getCurrentBoardString());
 
                     boardSudoku.clearCell(selectedRow, selectedCol);
                     saveProgress();
@@ -310,6 +327,12 @@ public class GameActivity extends AppCompatActivity {
         handleWin();
     }
 
+    private String getProgressField() {
+        if (difficulty.equalsIgnoreCase("Medium")) return "mediumProgress";
+        if (difficulty.equalsIgnoreCase("Hard")) return "hardProgress";
+        return "easyProgress";
+    }
+
     private void handleWin() {
         if (isGameEnded) return;
 
@@ -332,11 +355,16 @@ public class GameActivity extends AppCompatActivity {
             long newWinStreak = user.winStreak + 1;
             long newBestScore = Math.max(user.bestScore, score);
 
+            String progressField = getProgressField();
+            Long oldProgress = doc.getLong(progressField);
+            if (oldProgress == null) oldProgress = 0L;
+
             Map<String, Object> updateUser = new HashMap<>();
             updateUser.put("bestScore", newBestScore);
             updateUser.put("winStreak", newWinStreak);
             updateUser.put("loseStreak", 0L);
             updateUser.put("totalGames", FieldValue.increment(1));
+            updateUser.put(progressField, Math.max(oldProgress, (long) levelId));
 
             db.collection("users").document(uid).update(updateUser);
 
@@ -385,10 +413,49 @@ public class GameActivity extends AppCompatActivity {
         View btnNext = view.findViewById(R.id.btnWinNext);
         btnNext.setOnClickListener(v -> {
             dialog.dismiss();
-            finish();
+            goNextLevel();
         });
 
         dialog.show();
+    }
+
+    private void goNextLevel() {
+        int nextLevel = levelId + 1;
+
+        if (nextLevel > 100) {
+            Toast.makeText(this, "Bạn đã hoàn thành hết chế độ này", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        db.collection("sudoku_levels")
+                .whereEqualTo("difficulty", difficulty)
+                .whereEqualTo("level", (long) nextLevel)
+                .limit(1)
+                .get()
+                .addOnSuccessListener(query -> {
+                    if (query.isEmpty()) {
+                        Toast.makeText(this, "Chưa có màn tiếp theo", Toast.LENGTH_SHORT).show();
+                        finish();
+                        return;
+                    }
+
+                    String nextPuzzle = query.getDocuments().get(0).getString("puzzle");
+                    String nextSolution = query.getDocuments().get(0).getString("solution");
+
+                    Intent intent = new Intent(GameActivity.this, GameActivity.class);
+                    intent.putExtra("PUZZLE", nextPuzzle);
+                    intent.putExtra("SOLUTION", nextSolution);
+                    intent.putExtra("LEVEL", nextLevel);
+                    intent.putExtra("DIFFICULTY", difficulty);
+
+                    startActivity(intent);
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Lỗi mở màn tiếp theo", Toast.LENGTH_SHORT).show();
+                    finish();
+                });
     }
 
     private void handleLose() {

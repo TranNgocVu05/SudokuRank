@@ -3,6 +3,7 @@ package ntu.tranngocvu.sudokurank.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
+import ntu.tranngocvu.sudokurank.activities.LoginActivity;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -103,10 +104,14 @@ public class RegisterActivity extends AppCompatActivity {
                                 .set(user)
                                 .addOnSuccessListener(unused -> {
 
-                                    Toast.makeText(this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(this, "Đăng ký tài khoản thành công", Toast.LENGTH_LONG).show();
 
-                                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
-                                    finishAffinity();
+                                        // Quay về màn đăng nhập
+                                    Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                                    startActivity(intent);
+                                    finish();
                                 })
                                 .addOnFailureListener(e ->
                                         Toast.makeText(this,
