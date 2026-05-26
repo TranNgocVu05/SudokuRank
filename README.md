@@ -111,8 +111,3 @@
 </p>
 
 ---
-
-# 🚀 Hướng dẫn cài đặt
-
-```bash
-git clone https://github.com/your-username/SudokuRank.git
