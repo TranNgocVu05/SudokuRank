@@ -47,7 +47,11 @@
 - ✅ Hiển thị kết quả thắng / thua màn chơi
 
 ---
+# 🎥 Video Demo
 
+[▶ Xem video demo SudokuRank]()
+
+---
 # 📸 Giao diện ứng dụng
 
 ## 🔐 Splash Screen & Đăng nhập
