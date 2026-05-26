@@ -49,7 +49,7 @@
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/5d2dfb56-d072-4beb-a48c-861009068e04" width="260"/>
-  <img src="https://github.com/user-attachments/assets/b2710973-1bd0-4f2d-b132-a14f16a07349" width="260"/>
+  <img width="395" height="825" alt="dangnhap" src="https://github.com/user-attachments/assets/afc70f5b-feca-48c3-9785-99280483b9af" />
 </p>
 
 ---
