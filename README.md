@@ -49,7 +49,7 @@
 ---
 # 🎥 Video Demo
 
-[▶ Xem video demo SudokuRank]()
+[[▶ Xem video demo SudokuRank]()](https://drive.google.com/file/d/1wLE59rxJTgtAEiJuIVS4TSgw0GyWEHgU/view?usp=sharing)
 
 ---
 # 📸 Giao diện ứng dụng
