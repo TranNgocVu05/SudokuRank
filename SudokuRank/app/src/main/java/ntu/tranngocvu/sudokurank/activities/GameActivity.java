@@ -154,14 +154,22 @@ public class GameActivity extends AppCompatActivity {
             return;
         }
 
-        undoStack.push(boardSudoku.getCurrentBoardString());
+        int index = selectedRow * 9 + selectedCol;
+        String boardNow = boardSudoku.getCurrentBoardString();
+
+        if (boardNow.charAt(index) != '0') {
+            Toast.makeText(this, "Ô này đã có số", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        undoStack.push(boardNow);
 
         if (isNoteMode) {
             boardSudoku.addNote(selectedRow, selectedCol, num);
             return;
         }
 
-        char correct = solution.charAt(selectedRow * 9 + selectedCol);
+        char correct = solution.charAt(index);
 
         if (String.valueOf(num).equals(String.valueOf(correct))) {
             boardSudoku.setNumber(selectedRow, selectedCol, (char) ('0' + num));
@@ -219,14 +227,22 @@ public class GameActivity extends AppCompatActivity {
                     return;
                 }
 
+                int index = selectedRow * 9 + selectedCol;
+                String boardNow = boardSudoku.getCurrentBoardString();
+
+                if (boardNow.charAt(index) != '0') {
+                    Toast.makeText(this, "Ô này đã có số", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 if (hintsUsed >= 3) {
                     Toast.makeText(this, "Bạn đã hết lượt gợi ý", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                undoStack.push(boardSudoku.getCurrentBoardString());
+                undoStack.push(boardNow);
 
-                char correct = solution.charAt(selectedRow * 9 + selectedCol);
+                char correct = solution.charAt(index);
                 boardSudoku.setNumber(selectedRow, selectedCol, correct);
 
                 hintsUsed++;
