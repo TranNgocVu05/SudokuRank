@@ -48,13 +48,7 @@
 
 ---
 # 🎥 Video Demo
-<p align="center">
-  <a href="https://drive.google.com/file/d/1uKWk6vnNXnsoK2sp6JEDkYSljXXr5Jqo/view?usp=sharing">
-    <img src="https://img.shields.io/badge/▶%20Xem%20Video%20Demo-SudokuRank-blue?style=for-the-badge" />
-  </a>
-</p>
-
-<p align="center">
+   https://drive.google.com/file/d/1-kyG0Ne6GucTsELnckRVyH-mwCerLKPJ/view?usp=sharing 
   Video giới thiệu quá trình đăng nhập, chọn màn chơi, chơi Sudoku, thông báo thắng/thua, bảng xếp hạng và hồ sơ người chơi.
 </p>
 ---
