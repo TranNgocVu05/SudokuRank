@@ -48,9 +48,15 @@
 
 ---
 # 🎥 Video Demo
+<p align="center">
+  <a href="https://drive.google.com/file/d/1uKWk6vnNXnsoK2sp6JEDkYSljXXr5Jqo/view?usp=sharing">
+    <img src="https://img.shields.io/badge/▶%20Xem%20Video%20Demo-SudokuRank-blue?style=for-the-badge" />
+  </a>
+</p>
 
-[[[▶ Xem video demo SudokuRank]()](https://drive.google.com/file/d/1wLE59rxJTgtAEiJuIVS4TSgw0GyWEHgU/view?usp=sharing)](https://drive.google.com/file/d/1uKWk6vnNXnsoK2sp6JEDkYSljXXr5Jqo/view?usp=sharing)
-
+<p align="center">
+  Video giới thiệu quá trình đăng nhập, chọn màn chơi, chơi Sudoku, thông báo thắng/thua, bảng xếp hạng và hồ sơ người chơi.
+</p>
 ---
 # 📸 Giao diện ứng dụng
 
